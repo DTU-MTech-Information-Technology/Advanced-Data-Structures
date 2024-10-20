@@ -1,3 +1,3 @@
 # Advanced Data Structures
 
-Lab works for Advanced Data Structures(ITY503)
+Lab works for Advanced Data Structures (ITY503)
