@@ -1,92 +1,73 @@
 #include <bits/stdc++.h>
-
 using namespace std;
 
-struct node {
-    int key;
-    struct node *left, *right;
-    int height;
+struct Node {
+    struct Node* left;
+    struct Node* right;
+    int data;
+
+    Node(int data) {
+        this->data = data;
+        this->left = NULL;
+        this->right = NULL;
+    }
 };
 
-int height(struct node *root) {
-    if (root == NULL) return 0;
-    return root->height;
-}
+struct Info {
+    int max;
+    int min;
+    bool isBST;
+    int sum;
+    int currmax;
+};
 
-struct node *create_new_node(int key) {
-    struct node *new_node = (struct node *)malloc(sizeof(struct node));
-    new_node->key = key;
-    new_node->left = NULL;
-    new_node->right = NULL;
+Info MaxSumBSTUtil(struct Node* root, int& maxsum) {
+    if (root == NULL) return {INT_MIN, INT_MAX, true, 0, 0};
 
-    return new_node;
-}
-
-int get_balance(struct node *root) {
-    if (root == NULL) return 0;
-    return height(root->left) - height(root->right);
-}
-
-void preorder(struct node *root) {
-    if (root == NULL) return;
-
-    cout << "<key: " << root->key << ", height: " << root->height << ">"
-         << endl;
-    preorder(root->left);
-    preorder(root->right);
-}
-
-struct node *insert(struct node *root, int key) {
-    if (root == NULL) return create_new_node(key);
-
-    if (key < root->key) {
-        root->left = insert(root->left, key);
-    } else if (key > root->key) {
-        root->right = insert(root->right, key);
+    if (root->left == NULL && root->right == NULL) {
+        maxsum = max(maxsum, root->data);
+        return {root->data, root->data, true, root->data, maxsum};
     }
 
-    root->height = 1 + max(height(root->left), height(root->right));
-    return root;
+    Info L = MaxSumBSTUtil(root->left, maxsum);
+    Info R = MaxSumBSTUtil(root->right, maxsum);
+    Info BST;
+
+    if (L.isBST && R.isBST && L.max < root->data && R.min > root->data) {
+        BST.max = max(root->data, max(L.max, R.max));
+        BST.min = min(root->data, min(L.min, R.min));
+
+        maxsum = max(maxsum, R.sum + root->data + L.sum);
+        BST.sum = R.sum + root->data + L.sum;
+
+        BST.currmax = maxsum;
+
+        BST.isBST = true;
+        return BST;
+    }
+
+    BST.isBST = false;
+    BST.currmax = maxsum;
+    BST.sum = R.sum + root->data + L.sum;
+
+    return BST;
 }
 
-struct node *right_rotate(struct node *y) {
-    struct node *x = y->left;
-    struct node *t2 = x->right;
-
-    x->right = y;
-    y->left = t2;
-
-    x->height = 1 + max(height(x->left), height(x->right));
-    y->height = 1 + max(height(y->left), height(y->right));
-
-    return x;
+int MaxSumBST(struct Node* root) {
+    int maxsum = INT_MIN;
+    return MaxSumBSTUtil(root, maxsum).currmax;
 }
 
-struct node *left_rotate(struct node *x) {
-    struct node *y = x->right;
-    struct node *t2 = y->left;
+int main() {
+    struct Node* root = new Node(5);
+    root->left = new Node(14);
+    root->right = new Node(3);
+    root->left->left = new Node(6);
+    root->right->right = new Node(7);
+    root->left->left->left = new Node(9);
+    root->left->left->right = new Node(1);
 
-    y->left = x;
-    x->right = t2;
-
-    x->height = 1 + max(height(x->left), height(x->right));
-    y->height = 1 + max(height(y->left), height(y->right));
-
-    return y;
-}
-
-int main(int argc, char const *argv[]) {
-    struct node *root = NULL;
-
-    root = insert(root, 1);
-    root = insert(root, 2);
-    root = insert(root, 3);
-    root = insert(root, 4);
-    root = insert(root, 5);
-    root = insert(root, 6);
-    root = insert(root, 7);
-
-    preorder(root);
+    cout << MaxSumBST(root) << endl;
 
     return 0;
 }
